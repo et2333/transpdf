@@ -1,14 +1,16 @@
 # Contributing to transpdf
 
-This repository contains the design and implementation plan for the **PDF manual translation pipeline** (CN PDF → EN DOCX) with an enterprise termbase and optional RAG.
+This repository contains the design and implementation plan for the **PDF manual translation pipeline** (CN PDF → EN DOCX) with an enterprise termbase.
+
+Termbase strategy (current): **two-column termbase + deterministic lookup (strong constraint)** first; **RAG is optional** and used only for candidate recall in noisy / missed-match cases.
 
 ## Critical documentation policy (DO NOT DELETE)
 
 The following documents are **project anchors**. They must **never** be deleted or replaced with unrelated content.
 
-- `docs/solutions/pdf-translation-multiagent-rag-design.zh-CN.md`
-- `docs/solutions/pdf-translation-multiagent-rag-design.en-US.md`
-- `docs/solutions/pdf-translation-multiagent-rag-implementation-plan.zh-CN.md`
+- `docs/solutions/transpdf-design.zh-CN.md`
+- `docs/solutions/transpdf-design.en-US.md`
+- `docs/solutions/transpdf-implementation-plan.zh-CN.md`
 
 ### Allowed changes (append-only)
 

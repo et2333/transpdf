@@ -5,3 +5,16 @@ data/incoming/*
 # Local environment files (do not commit)
 .env
 .env.*
+
+# Python caches / build artifacts (do not commit)
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+*.egg-info/
+dist/
+build/

@@ -1,0 +1,3 @@
+# 客户原件与大型输入（保留目录说明文件）
+data/incoming/*
+!data/incoming/README.md

@@ -1,3 +1,7 @@
 # 客户原件与大型输入（保留目录说明文件）
 data/incoming/*
 !data/incoming/README.md
+
+# Local environment files (do not commit)
+.env
+.env.*

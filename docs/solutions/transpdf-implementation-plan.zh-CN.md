@@ -32,10 +32,11 @@ repo/
   config/
     config.example.yaml
   src/
-    capgemini_translator/
+    transpdf/
       __init__.py
       orchestrator.py          # Orchestrator
       pdf_layout.py            # PdfLayout
+      termbase_lookup.py       # TermbaseLookup（两列词库精确命中，强约束）
       termbase_rag.py          # TermbaseRAG
       text_translation.py      # TextTranslation
       ocr_vision.py            # OcrVision
@@ -47,9 +48,9 @@ repo/
   tests/
   docs/
     solutions/
-      pdf-translation-multiagent-rag-design.zh-CN.md
-      pdf-translation-multiagent-rag-design.en-US.md
-      pdf-translation-multiagent-rag-implementation-plan.zh-CN.md
+      transpdf-design.zh-CN.md
+      transpdf-design.en-US.md
+      transpdf-implementation-plan.zh-CN.md
       sample-assets.en-US.md
   scripts/
     run_pipeline.py
@@ -62,7 +63,7 @@ repo/
 
 ### `config.yaml`（节选语义）
 
-- `pipeline.locale_source` / `pipeline.locale_target`：源/目标语言 BCP-47。
+- `pipeline.locale_source` / `pipeline.locale_target`：源/目标语言 BCP-47（语言标签标准，如 `zh-CN`、`en-US`；需要区分地区/脚本时可扩展）。
 - `llm.provider` / `llm.model` / `llm.temperature` / `llm.max_tokens`。
 - `ocr.provider` / `ocr.lang` / `ocr.dpi`。
 - `vision.provider`：图片描述或版式理解（可与 LLM 合并为同一多模态端点）。
@@ -80,6 +81,7 @@ repo/
 - `EMBEDDING_API_KEY`（若与 LLM 不同）
 - `TERMBASE_UPDATE_TOKEN`（增量更新钩子，可选）
 
+> 建议默认将 VISION 与 EMBEDDING 的密钥保持独立，便于试验不同供应商/模型；需要时也可配置为复用同一密钥。
 > 具体键名以 `config.example.yaml` 为准；**密钥只走环境变量或密钥管理器**，不入库。
 
 ## 数据模型
@@ -119,7 +121,8 @@ repo/
 |------|--------|------|
 | 编排 | `Orchestrator` | 解析配置、调度 A/B 通道、聚合状态机、写报告总览 |
 | 版式 | `PdfLayout` | 页级结构、块级 bbox、阅读顺序、与 DOCX 样式映射 |
-| 术语 | `TermbaseRAG` | 向量检索 + 过滤 + 命中解释；支持增量重建索引 |
+| 术语（强约束） | `TermbaseLookup` | 两列词库（中文/英文）精确命中；提供 must-use 约束与审计字段（优先级高于 RAG） |
+| 术语（候选召回） | `TermbaseRAG` | 向量检索候选召回（可选启用）；默认不直接强制替换，达阈值才升级为 must-use，否则进入报告/人工队列 |
 | 文本翻译 | `TextTranslation` | 术语增强提示词、批量翻译、回退策略 |
 | OCR/视觉 | `OcrVision` | 对 B 通道块 OCR；可选版式/元素分类 |
 | 图像叠字 | `ImageOverlay` | 根据 `OverlayInstruction` 生成可编辑替代或占位策略 |
@@ -127,6 +130,9 @@ repo/
 | 质检 | `QA` | 规则扫描、LLM 二次审校（可选）、**图片人工队列** |
 
 > 以上为 **Protocol / ABC** 级接口；实现类在 `config.yaml` 中绑定。
+
+> 与 [transpdf-design.zh-CN.md](transpdf-design.zh-CN.md) 的「多智能体角色（逻辑视图）」关系：设计文档描述的是**逻辑分工/职责边界**，本节描述的是**工程实现的模块接口**。
+> 两者不要求逐项一一对应，但应覆盖核心职责；若实现中发生合并/拆分，以项目交付目标为准，并在 design 与 implementation 中同步补充说明，避免文档分叉。
 
 ## 报告列（CSV/HTML 建议）
 

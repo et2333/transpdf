@@ -14,6 +14,7 @@
 | 决策项 | 结论 |
 |--------|------|
 | 主语言 | **Python 3.12+**（类型标注、丰富生态、Windows 友好） |
+| 多智能体框架 | **LangGraph（M0 起必选）**：用于工作流图、状态与检查点（checkpoint）、回放/增量重跑；在此之上实现多 agent 模块化 |
 | LLM / OCR | **可插拔**：接口抽象 + `config.yaml` 声明实现类或端点 + **环境变量** 注入密钥与 endpoint |
 | PDF 输入 | **双通道**：文本层直接抽取；扫描页/插图走 **OCR + 视觉理解**（可选多模态模型） |
 | 图片人工 | **抽样 + 置信度阈值**：目标 **<5%** 进入人工复核队列 |
@@ -31,9 +32,14 @@
 repo/
   config/
     config.example.yaml
+  pyproject.toml
+  requirements.txt
   src/
     transpdf/
       __init__.py
+      agents/
+        __init__.py
+        term_agent.py           # TermAgent（节点封装壳：术语约束提示包）
       orchestrator.py          # Orchestrator
       pdf_layout.py            # PdfLayout
       termbase_lookup.py       # TermbaseLookup（两列词库精确命中，强约束）
@@ -54,7 +60,7 @@ repo/
       sample-assets.en-US.md
   scripts/
     run_pipeline.py
-  pyproject.toml / requirements.txt
+    termbase_smoke.py
 ```
 
 > 样例与敏感输入的目录约定见：[sample-assets.en-US.md](sample-assets.en-US.md)。
@@ -67,7 +73,9 @@ repo/
 - `llm.provider` / `llm.model` / `llm.temperature` / `llm.max_tokens`。
 - `ocr.provider` / `ocr.lang` / `ocr.dpi`。
 - `vision.provider`：图片描述或版式理解（可与 LLM 合并为同一多模态端点）。
-- `termbase.path` / `termbase.embedding_model` / `termbase.top_k` / `termbase.refresh_cron`（可选）。
+- `termbase.path`：企业私有两列词库路径（见 `config.example.yaml`）。
+- `termbase.mode`：`lookup`（默认）或 `rag`（可选增强；仅用于候选召回，需阈值策略）。
+- `termbase.top_k` / `termbase.threshold`：仅 `rag` 模式下生效（可选，后续里程碑补齐）。
 - `pdf.text_extraction.backend`：`pymupdf` / `pdfplumber` 等。
 - `overlay.level_default`：`L1`–`L4`（见设计文档）。
 - `qa.image_review.sample_rate` 与 `qa.image_review.confidence_threshold`：驱动 **<5%** 人工队列。

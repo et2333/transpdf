@@ -5,7 +5,7 @@
 ## 目标
 
 - 在 **可复制文本（A 通道）** 与 **图像/扫描（B 通道）** 并存的前提下，提供一致的 **翻译单元（TU）** 抽象与可追溯报告。
-- 通过 **多智能体角色分工** 降低单点提示词复杂度，并用 **术语 RAG** 约束专业表达。
+- 通过 **多智能体角色分工** 降低单点提示词复杂度，并用 **TermbaseLookup（强约束）+ 可选 TermbaseRAG（候选补召回）** 约束专业表达。
 - 输出 **三件交付物**：结构化中间件、**DOCX**、**质检报告**（CSV/HTML）。
 
 ## 范围
@@ -42,7 +42,8 @@ flowchart TB
   end
   subgraph Knowledge[术语知识]
     TB[(术语表文件)]
-    RAG[TermbaseRAG 向量索引]
+    LOOKUP[TermbaseLookup 精确命中]
+    RAG[TermbaseRAG 向量索引 可选]
   end
   subgraph Output[输出]
     DOCX[DocxComposer]
@@ -55,6 +56,9 @@ flowchart TB
   LAYOUT --> TXT
   OCR --> VIS
   VIS --> OVL
+  TB --> LOOKUP
+  LOOKUP --> TXT
+  LOOKUP --> OCR
   TB --> RAG
   RAG --> TXT
   RAG --> OCR
@@ -71,7 +75,7 @@ flowchart TB
 |------|------|----------------|
 | **编排者** | 任务分解、A/B 路由、重试与降级 | PDF → 子任务清单 |
 | **版式分析** | 块、顺序、bbox | 页渲染/文本块 → `TranslationUnit` 元数据 |
-| **术语员** | 检索、冲突候选排序 | 源片段 → 术语提示包 |
+| **术语员** | Lookup 精确命中（强约束）+ RAG 候选补召回（可选） | 源片段 → 术语提示包 |
 | **译员（文本）** | A 通道翻译 | 源文+术语 → 译文 |
 | **OCR/视觉员** | B 通道识别与元素分类 | 裁剪图 → 文本/类型 |
 | **叠字员** | 生成 `OverlayInstruction` | 译文+bbox → L1–L4 指令 |
@@ -79,6 +83,7 @@ flowchart TB
 | **质检员** | 规则+模型审校+抽样 | TU/DOCX → `qa_flags`、人工队列 |
 
 > 实现上可为 **单进程多调用** 或 **多进程/消息队列**；逻辑边界以提示词与数据契约为准。
+> 落地方式：逻辑上的多智能体分工通过工程模块实现，并由 **LangGraph（M0 起必选）** 承载工作流图与状态机（路由、重试、检查点、回放/增量重跑）。
 
 ## 通道 A / B
 

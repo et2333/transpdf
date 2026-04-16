@@ -1,0 +1,24 @@
+pipeline:
+  locale_source: zh-CN
+  locale_target: en-US
+
+llm:
+  # Gemini OpenAI-compatible endpoint (example):
+  #   GEMINI_FLASH_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+  base_url: ${GEMINI_FLASH_BASE_URL}
+  api_key: ${LLM_API_KEY}
+  model: gemini-2.0-flash
+  temperature: 0.1
+  max_tokens: 2048
+
+pdf:
+  text_extraction:
+    backend: pymupdf
+
+termbase:
+  path: data/incoming/机器人中英文对照专业词库_完整版.md.docx
+  mode: lookup
+
+output:
+  dir: outputs
+

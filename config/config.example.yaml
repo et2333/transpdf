@@ -2,6 +2,11 @@ pipeline:
   locale_source: zh-CN
   locale_target: en-US
 
+input:
+  # Convenience default so you can run without passing --pdf.
+  # Put your current target PDF under data/incoming/ and keep it gitignored.
+  pdf_path: data/incoming/RCS操作手册.pdf
+
 llm:
   # Gemini OpenAI-compatible endpoint (example):
   #   GEMINI_FLASH_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
